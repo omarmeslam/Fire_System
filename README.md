@@ -1,5 +1,5 @@
 # Fire_System 
-is a system which determine the state of the system (based on Atmega32)-->
+is a system which determine the state of the system (based on Atmega32)--> 
 -the first state is fine
 -the second is Heat
 -the third is fire according to sensors (Temp, Smoke) reading.
