@@ -1,8 +1,8 @@
 # Fire_System 
-is a system which determine the state of the system (based on Atmega32)--> 
--the first state is fine
--the second is Heat
--the third is fire according to sensors (Temp, Smoke) reading.
+is a system which determine the state of the system (based on Atmega32)-->             
+-the first state is fine          
+-the second is Heat             
+-the third is fire according to sensors (Temp, Smoke) reading.                     
 
 then print the state on LCD, if heat state achieved, set the heat led.
 if state 3 achieved and the system detect a fire, it opens alarm, water pump and can't return to normal state until fix it and enter password to the system to reset.
