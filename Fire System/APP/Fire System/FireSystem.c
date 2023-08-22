@@ -8,15 +8,16 @@
 #include "FireSystem_Interface.h"
 #include "TempFilter_Interface.h"
 #include "NVM_Services.h"
+#include "BCM_Services.h"
 
 
 
 static u16 temp,smoke;
-u8 TryFlag,StopFlag=0, PassIndex,PassFlag,flag;
+u8 TryFlag,StopFlag=0, PassIndex,PassFlag,flag,messageFlag;
 static SystemStates_t state=STATE_1;
 static c8 SystemPassword[10]="1234";
 static c8 GetPassword[10];
-
+u8 c1=0;
 
 
 static Error_t StringCompare(c8* str1, c8* str2)
@@ -65,6 +66,7 @@ static void SystemReset(void)
 	LCD_Clear();
 	DIO_WritePin(HEAT_LED,LOW);
 	DIO_WritePin(FIRE_LED,LOW);	
+	DIO_WritePin(BUZZER,LOW);
 	MOTOR_Stop(M2);
 	TryFlag = 0;
 	state = STATE_1;
@@ -76,9 +78,7 @@ static void SystemReset(void)
 static void WriteTemp(u16 temp)
 {
 	LCD_GoTo(1,0);
-	LCD_WriteNumber(temp);
-	//LCD_WriteChar('.');
-	//LCD_WriteNumber(temp%10);
+	LCD_WriteNumber(temp/10);
 	LCD_WriteChar('c');
 	LCD_WriteString("  ");
 }
@@ -107,17 +107,16 @@ static void WriteStateOnLCD(SystemStates_t state)
 
 void FireSystem_Init(void)
 {
-	for (u8 i=0;EEPROM_Read(i);i++)
+	for (u8 i=0;EEPROM_Read(i)!=0;i++)
 	{
 		SystemPassword[i]=EEPROM_Read(i);
 	}
+	
 	MOTOR_Stop(M2);
 	DIO_WritePin(HEAT_LED,LOW);
 	DIO_WritePin(FIRE_LED,LOW);
 	LCD_GoTo(0,6);
 	LCD_WriteString("Fine");
-	LCD_GoTo(1,5);
-	LCD_WriteString("edit pass:2");
 	
 }
 
@@ -131,17 +130,16 @@ void FireSystem_Runnable(void)
 	temp=Filter_GetFilteredTemp();
 	
 	
-	
 	if (!StopFlag && !TryFlag && !PassFlag)
 	{
 		WriteTemp(temp);
 	}
 	
-	if (temp>50 && (state!=STATE_3))
+	if (temp>500 && (state!=STATE_3))
 	{
 		state = STATE_2;
 	}
-	else if (temp<45 && (state!=STATE_3))
+	else if (temp<450 && (state!=STATE_3))
 	{
 		state = STATE_1; 
 	}
@@ -151,7 +149,7 @@ void FireSystem_Runnable(void)
 	}
 	
 	smoke=POT_Smoke_Read();
-	if (temp>50 && smoke>50)
+	if (temp>500 && smoke>50)
 	{
 		state = STATE_3;
 	}
@@ -167,11 +165,15 @@ void FireSystem_Runnable(void)
 		{
 			case STATE_1: /* fine state*/
 			WriteStateOnLCD(state);
+			LCD_GoTo(1,5);
+			LCD_WriteString("Edit Pass:2");
 			DIO_WritePin(HEAT_LED,LOW);
 			flag=0;
 			break;
 			case STATE_2: /* heat state*/
 			WriteStateOnLCD(state);
+			LCD_GoTo(1,5);
+			LCD_WriteString("Edit Pass:2");
 			DIO_WritePin(HEAT_LED,HIGH);
 			break;
 			case STATE_3: /* fire state*/
@@ -179,13 +181,25 @@ void FireSystem_Runnable(void)
 			{
 				LCD_Clear();
 				flag=1;
+				messageFlag=1;
 			}
 			WriteStateOnLCD(state);
 			LCD_GoTo(1,8);
 			LCD_WriteString("Stop:1");
 			DIO_WritePin(HEAT_LED,HIGH);
 			DIO_WritePin(FIRE_LED,HIGH);
+			DIO_WritePin(BUZZER,HIGH);
 			MOTOR_CW(M2);
+			LCD_GoTo(0,1);
+			LCD_WriteNumber(c1);
+			if (messageFlag)
+			{
+				UART_SendStringAsynch("message: system is fire");
+				UART_SendStringAsynch(", please fix the problem");
+				messageFlag=0;
+			}
+			
+			c1++;
 			break;
 			default:
 			break;
@@ -218,7 +232,7 @@ void FireSystem_Runnable(void)
 			StopFlag = 1;
 			TryFlag = 1;
 		}
-		else if (k>='0' && k<='9')
+		else if (k>='0' && k<='9' && StopFlag==1)
 		{
 			GetPassword[PassIndex++]=k;
 			LCD_WriteChar(k);
