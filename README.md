@@ -22,7 +22,8 @@ and send a sms message by UART Communication.
 
 #Fire State if (temp >50 & smoke>50):        
 -The system prints Fire on LCD.              
--red led will light up to indicate Fire state.  
+-red led will light up to indicate Fire state.   
+-open Buzzer and Water Pump.   
 -send SMS message "system is fire, please fix the problem".  
 -LCD prints option for reset system, click 1.                 
 -to reset system will click 1, then LCD will print Enter Password, LCD will print wrong password if you enterd a wrong password and give you option to try again.           
