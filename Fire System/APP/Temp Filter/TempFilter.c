@@ -10,7 +10,7 @@ u16 FILTER_UnFilteredTemp;
 
 void Filter_Init(void)
 {
-	u16 TempInit=POT_Temp_Read();
+	u16 TempInit=TEMP_Read();
 	FILTER_UnFilteredTemp=TempInit;
 	
 	for (u8 i=0;i<FILTER_TEMP_SIZE;i++)
@@ -25,7 +25,8 @@ void Filter_Runnable(void)
 	static u8 in=0;
 	u16 tempsum=0;
 
-	FILTER_TempArr[in] = POT_Temp_Read();
+	FILTER_TempArr[in] = TEMP_Read();
+	
 	FILTER_UnFilteredTemp = FILTER_TempArr[in];
 	in++;
 	if (in==10)
