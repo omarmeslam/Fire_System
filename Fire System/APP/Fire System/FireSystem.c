@@ -17,7 +17,7 @@ u8 TryFlag,StopFlag=0, PassIndex,PassFlag,flag,messageFlag;
 static SystemStates_t state=STATE_1;
 static c8 SystemPassword[10]="1234";
 static c8 GetPassword[10];
-u8 c1=0;
+
 
 
 static Error_t StringCompare(c8* str1, c8* str2)
@@ -190,16 +190,12 @@ void FireSystem_Runnable(void)
 			DIO_WritePin(FIRE_LED,HIGH);
 			DIO_WritePin(BUZZER,HIGH);
 			MOTOR_CW(M2);
-			LCD_GoTo(0,1);
-			LCD_WriteNumber(c1);
 			if (messageFlag)
 			{
 				UART_SendStringAsynch("message: system is fire");
 				UART_SendStringAsynch(", please fix the problem");
 				messageFlag=0;
 			}
-			
-			c1++;
 			break;
 			default:
 			break;
